@@ -24,7 +24,7 @@ class SocketData(BaseModel):
     error: Optional[Exception] = None
 
 SOCKET_PATH = "/tmp/doma/doma.sock"
-SOCKET_TIMEOUT = 2
+SOCKET_TIMEOUT = 5
 
 def get_socket():
     server_address = SOCKET_PATH

@@ -46,7 +46,11 @@ class GPUController(Process):
         self.start_inspect()
         while not self.validate_hold_condition():
             sleep(1)
-        self.hold()
+            if self.stop_signal.is_set():
+                break
+        if not self.stop_signal.is_set():
+            logger.info(f"Start holding GPU {self.id}")
+            self.hold()
         self.stop_inspect()
 
     def start_inspect(self):
@@ -183,7 +187,6 @@ class GPUController(Process):
     def validate_hold_condition(self):
         return (
             self.is_history_full()
-            and not self.stop_signal.is_set()
             and self.get_history_metric("used_mem", "max") < self.config.mem_threshold
         )
 
@@ -209,6 +212,7 @@ class GPUGroupManager:
             raise FileExistsError(
                 f"Socket file {self.server_address} already exists. doma may be already running or the previous instance is not shutdown properly."
             )
+        os.makedirs(os.path.dirname(self.server_address), exist_ok=True)
         self.socket.bind(self.server_address)
         self.socket.listen()
 
@@ -220,6 +224,7 @@ class GPUGroupManager:
     def stop_controllers(self):
         self.controller_stop_signal.set()
         for controller in self.gpu_controllers:
+            logger.info(f"Stopping controller {controller.id}")
             if controller.is_alive():
                 controller.join()
 
@@ -247,6 +252,7 @@ class GPUGroupManager:
                 socket_data = recv_socket_data(conn)
                 signal = socket_data.signal
                 config = socket_data.config
+                logger.info(f"Received signal: {signal}")
                 error = None
                 try:
                     match signal:
