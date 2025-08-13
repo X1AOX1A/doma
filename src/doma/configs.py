@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any, Dict, Tuple, Type
 
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
@@ -16,16 +16,24 @@ class AlgorithmConfig(BaseModel):
         description="Utilization epsilon for convergence precision (smaller = higher precision but slower).",
     )
     max_sleep_time: float = Field(
-        default=1, gt=0, description="Init maximum sleep time in seconds of binary search"
+        default=1,
+        gt=0,
+        description="Init maximum sleep time in seconds of binary search",
     )
     min_sleep_time: float = Field(
-        default=0, ge=0, description="Init minimum sleep time in seconds of binary search"
+        default=0,
+        ge=0,
+        description="Init minimum sleep time in seconds of binary search",
     )
     inspect_interval: float = Field(
-        default=1, gt=0, description="Interval in seconds to inspect GPU utilization during binary search"
+        default=1,
+        gt=0,
+        description="Interval in seconds to inspect GPU utilization during binary search",
     )
     util_samples_num: int = Field(
-        default=5, gt=0, description="Number of samples to take for utilization during binary search"
+        default=5,
+        gt=0,
+        description="Number of samples to take for utilization during binary search",
     )
 
 
@@ -36,10 +44,10 @@ class ControllerConfig(BaseModel):
     mem_threshold: float = Field(
         default=0.5, gt=0, description="Memory threshold in GB"
     )
-    hold_mem: Optional[float] = Field(
-        default=None,
+    hold_mem: float = Field(
+        default=10,
         gt=0,
-        description="Memory to hold in GB. Defaults to 50% of free memory",
+        description="Memory to hold in GB. Defaults to 10GB",
     )
     hold_util: float = Field(
         default=0.5, gt=0, lt=1, description="GPU utilization to maintain (0-1)"

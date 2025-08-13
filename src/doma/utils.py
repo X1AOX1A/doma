@@ -1,4 +1,5 @@
 from functools import update_wrapper
+import typing
 from typing import Callable, Type
 
 import click
@@ -56,6 +57,9 @@ def cfg_as_opt(config_cls: Type[BaseModel]):
 
         for name, field in get_config_field_recursively(config_cls, reverse=True):
             name = name.replace("_", "-")
+            if isinstance(field.annotation, typing._Final):
+                raise ValueError(f"Union type is not supported: {field.annotation}")
+
             if field.is_required():
                 wrapper = click.option(
                     f"--{name}",

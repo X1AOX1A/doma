@@ -1,7 +1,9 @@
 import json
+from typing import Optional
 import click
 from click.testing import CliRunner
 from pydantic import BaseModel, Field
+import pytest
 
 import doma.utils as utils
 
@@ -83,3 +85,10 @@ def test_pydantic_validation_error_propagates(monkeypatch):
     assert result_missing.exit_code != 0
     assert result_missing.exception is not None
 
+def test_cmd_executes_with_union_types(monkeypatch):
+    class TestConfig(BaseModel):
+        a: Optional[int] = Field(description="A number")
+    with pytest.raises(ValueError, match="Union type is not supported"):
+        @utils.cfg_as_opt(TestConfig)
+        def handle(config: TestConfig):
+            click.echo(json.dumps(config.model_dump()))
