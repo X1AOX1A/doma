@@ -2,6 +2,8 @@
 
 > A smart GPU resource manager that automatically holds idle GPU memory and maintains controlled utilization to prevent resource preemption.
 
+![doma](./assets/example.svg)
+
 **doma** (DOg in the MAnager) is a lightweight daemon tool designed to intelligently occupy idle GPU resources. It monitors GPU usage patterns and automatically claims memory and maintains specified utilization levels when GPUs become idle, preventing resource preemption because of low utilization.
 
 ## ✨ Features
@@ -66,7 +68,7 @@ Begins monitoring and holding idle GPUs with specified configuration.
 **Options:**
 - `--wait-minutes`: Minutes to wait before holding GPU (default: 10)
 - `--mem-threshold`: Memory threshold in GB for idle detection (default: 0.5)
-- `--hold-mem`: Memory to hold in GB (default: 50% of free memory)
+- `--hold-mem`: Memory to hold in GB (default: 10GB)
 - `--hold-util`: Target GPU utilization to maintain (0-1, default: 0.5)
 
 **Algorithm Options:**
@@ -180,6 +182,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Memory Safety**: The tool includes automatic cleanup mechanisms, but system crashes may require manual GPU memory cleanup.
 - **Compatibility**: Requires NVIDIA GPUs with CUDA support. AMD GPUs are not currently supported.
 - **Performance Impact**: Holding operations use minimal resources but may slightly impact system performance.
+- **GPU Memory Calculation**: Doma uses the `torch.cuda.device_memory_used` to calculate the GPU memory. It may not be the same as the `nvidia-smi` command.
 
 ## 🆘 Troubleshooting
 
