@@ -1,11 +1,13 @@
+from contextlib import contextmanager
 from enum import Enum
-import json
 import os
+import pickle
 import socket
 import sys
-from typing import Callable,Optional
-from pydantic import BaseModel
-from contextlib import contextmanager
+from typing import Callable, Optional
+
+from pydantic import BaseModel, ConfigDict
+
 from doma.configs import ControllerConfig
 
 class Signal(Enum):
@@ -16,11 +18,12 @@ class Signal(Enum):
     GREETING = 4
 
 class SocketData(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     signal: Signal
     config: Optional[ControllerConfig] = None
-    error: Optional[str] = None
+    error: Optional[Exception] = None
 
-SOCKET_PATH = "/tmp/doma.sock"
+SOCKET_PATH = "/tmp/doma/doma.sock"
 SOCKET_TIMEOUT = 2
 
 def get_socket():
@@ -47,13 +50,12 @@ def recv_socket_data(conn:socket.socket, timeout:Optional[float]=None) -> Socket
             if EOS in bytes_buffer:
                 break
         bytes_buffer = bytes_buffer.split(EOS)[0]
-        data_str = bytes_buffer.decode()
-        data_json = json.loads(data_str)
-    return SocketData.model_validate(data_json)
+        data = pickle.loads(bytes_buffer)
+    return data
 
 def send_socket_data(conn:socket.socket, data:SocketData, timeout:Optional[float]=None):
     with socket_timeout(conn, timeout):
-        conn.send(data.model_dump_json().encode() + EOS)
+        conn.send(pickle.dumps(data) + EOS)
 
 def daemonize(
     func: Callable, stdin="/dev/null", stdout="/dev/null", stderr="/dev/null"
