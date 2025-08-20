@@ -11,6 +11,7 @@ dependencies = [
     "click>=8.2.1",
     "loguru>=0.7.3",
     "numpy>=2.3.2",
+    "psutil>=7.0.0",
     "pydantic>=2.11.7",
     "pynvml>=12.0.0",
     "torch>=2.4.0",
@@ -27,10 +28,18 @@ build-backend = "uv_build"
 dev = [
     "ipykernel>=6.30.1",
     "nvitop>=1.5.2",
+    "pre-commit>=4.3.0",
     "pytest>=8.4.1",
+    "ruff>=0.12.9",
 ]
 
 [tool.pytest.ini_options]
 markers = [
     "slow: marks tests as slow",
 ]
+
+[tool.ruff]
+extend-exclude = ["tests"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
