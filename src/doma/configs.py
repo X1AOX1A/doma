@@ -58,7 +58,7 @@ class ControllerConfig(BaseModel):
 
 
 class LaunchConfig(BaseModel):
-    log_path: str = Field(default="/tmp/doma/doma.log", description="Path to log file")
+    cache_path: str = Field(default="/tmp/doma", description="Path to cache directory")
 
 
 def get_config_field_recursively(

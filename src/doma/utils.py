@@ -1,12 +1,16 @@
-from functools import update_wrapper
+import os
 import typing
+from functools import update_wrapper
+from time import sleep
 from typing import Callable, Type
 
 import click
+import psutil
 from pydantic import BaseModel
 
 from doma.configs import build_config_from_flattened_dict, get_config_field_recursively
 from doma.core import (
+    PID_PATH,
     SOCKET_TIMEOUT,
     SocketData,
     get_socket,
@@ -25,8 +29,6 @@ def exchange_socket_data(
             socket.connect(addr)
         send_socket_data(socket, data, timeout)
         result = recv_socket_data(socket, timeout)
-    except FileNotFoundError:
-        raise RuntimeError("Server is not running. Please launch it first.")
     except Exception as e:
         raise e
     finally:
@@ -79,3 +81,37 @@ def cfg_as_opt(config_cls: Type[BaseModel]):
         return wrapper
 
     return decorator
+
+
+def is_server_dead(wait_time=10, remove_pid_file_if_dead=False) -> bool:
+    try:
+        with open(PID_PATH, "r") as f:
+            pid = int(f.read())
+    except FileNotFoundError:
+        return True
+    flag = False
+    for _ in range(wait_time):
+        sleep(1)
+        if not psutil.pid_exists(pid):
+            flag = True
+            break
+        elif psutil.Process(pid).status() == psutil.STATUS_ZOMBIE:
+            # We expect PID=1 process can kill zombie process.
+            flag = True
+            break
+    if flag and remove_pid_file_if_dead:
+        try:
+            os.remove(PID_PATH)
+        except FileNotFoundError:
+            pass
+    return flag
+
+
+def get_logger():
+    import sys
+
+    from loguru import logger
+
+    logger.remove()
+    logger.add(sys.stdout, format="{message}", level="INFO")
+    return logger

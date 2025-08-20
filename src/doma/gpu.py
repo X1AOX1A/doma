@@ -1,17 +1,17 @@
-from collections import deque
-from dataclasses import dataclass
 import gc
-from multiprocessing import Process
-from multiprocessing import Event as get_process_event
-from multiprocessing.synchronize import Event as ProcessEvent
 import os
 import socket
 import threading
+from collections import deque
+from dataclasses import dataclass
+from multiprocessing import Event as get_process_event
+from multiprocessing import Process
+from multiprocessing.synchronize import Event as ProcessEvent
 from time import sleep, time
 from typing import Literal, Optional
 
-from loguru import logger
 import torch
+from loguru import logger
 
 from doma.configs import ControllerConfig
 from doma.core import Signal, SocketData, get_socket, recv_socket_data, send_socket_data
@@ -35,7 +35,7 @@ class GPUController(Process):
             id: GPU id
             config: Config
         """
-        super().__init__()
+        super().__init__(daemon=True)
         self.id = id
         self.config = config
         self.alg_config = config.alg_config
@@ -226,7 +226,15 @@ class GPUGroupManager:
         for controller in self.gpu_controllers:
             logger.info(f"Stopping controller {controller.id}")
             if controller.is_alive():
-                controller.join()
+                controller.join(timeout=10)  # Add timeout to prevent hanging
+                if controller.is_alive():
+                    logger.warning(
+                        f"Controller {controller.id} did not stop gracefully, terminating..."
+                    )
+                    controller.terminate()
+                    controller.join(
+                        timeout=5
+                    )  # Give it a bit more time after terminate
 
     def update_config(self, config: Optional[ControllerConfig]):
         if config is not None:
@@ -275,4 +283,6 @@ class GPUGroupManager:
                     error = e
                 send_socket_data(conn, SocketData(signal=Signal.GREETING, error=error))
         self.socket.close()
-        os.remove(self.server_address)
+        self.stop_controllers()
+        if os.path.exists(self.server_address):
+            os.remove(self.server_address)
