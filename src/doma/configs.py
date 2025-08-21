@@ -45,12 +45,12 @@ class ControllerConfig(BaseModel):
         default=0.5, gt=0, description="Memory threshold in GB"
     )
     hold_mem: float = Field(
-        default=10,
+        default=40,
         gt=0,
-        description="Memory to hold in GB. Defaults to 10GB",
+        description="Memory to hold in GB. Defaults to 40GB",
     )
     hold_util: float = Field(
-        default=0.5, gt=0, lt=1, description="GPU utilization to maintain (0-1)"
+        default=0.8, gt=0, lt=1, description="GPU utilization to maintain (0-1)"
     )
     alg_config: AlgorithmConfig = Field(
         default=AlgorithmConfig(), description="Algorithm configuration"
