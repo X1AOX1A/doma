@@ -39,7 +39,7 @@ class AlgorithmConfig(BaseModel):
 
 class ControllerConfig(BaseModel):
     wait_minutes: float = Field(
-        default=10, ge=0.1, description="Minutes to wait before holding GPU"
+        default=5, ge=0.1, description="Minutes to wait before holding GPU"
     )
     mem_threshold: float = Field(
         default=0.5, gt=0, description="Memory threshold in GB"
